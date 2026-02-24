@@ -1,0 +1,7 @@
+{
+  "name": "OneYatra P1",
+  "description": "OneYatra is India's premier MaaS (Mobility as a Service) Super App. Unified travel search across Cabs, Buses, Trains, and Flights, powered by Gemini AI for intelligent route planning, price prediction, and real-time tracking.",
+  "requestFramePermissions": [
+    "geolocation"
+  ]
+}

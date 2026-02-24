@@ -1,0 +1,83 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="theme-color" content="#f97316" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <title>OneYatra - The Super App for Indian Mobility</title>
+    <link rel="manifest" href="/manifest.json" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+        <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['Inter', 'sans-serif'],
+            },
+            colors: {
+              brand: {
+                50: 'rgb(var(--color-brand-50) / <alpha-value>)',
+                100: 'rgb(var(--color-brand-100) / <alpha-value>)',
+                200: 'rgb(var(--color-brand-200) / <alpha-value>)',
+                300: 'rgb(var(--color-brand-300) / <alpha-value>)',
+                400: 'rgb(var(--color-brand-400) / <alpha-value>)',
+                500: 'rgb(var(--color-brand-500) / <alpha-value>)', // Orange/Saffron
+                600: 'rgb(var(--color-brand-600) / <alpha-value>)',
+                700: 'rgb(var(--color-brand-700) / <alpha-value>)',
+                800: 'rgb(var(--color-brand-800) / <alpha-value>)',
+                900: 'rgb(var(--color-brand-900) / <alpha-value>)',
+              }
+            },
+            screens: {
+              'xs': '480px',
+            },
+            animation: {
+              shimmer: 'shimmer 1.5s infinite linear',
+            },
+            keyframes: {
+              shimmer: {
+                '0%': { backgroundPosition: '-1000px 0' },
+                '100%': { backgroundPosition: '1000px 0' },
+              }
+            }
+          }
+        }
+      }
+    </script>
+  <script type="importmap">
+{
+  "imports": {
+    "react/": "https://esm.sh/react@^19.2.4/",
+    "react": "https://esm.sh/react@^19.2.4",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.4/",
+    "lucide-react": "https://esm.sh/lucide-react@^0.563.0",
+    "@google/genai": "https://esm.sh/@google/genai@^1.40.0",
+    "date-fns": "https://esm.sh/date-fns@^3.3.1"
+  }
+}
+</script>
+<link rel="stylesheet" href="/index.css">
+</head>
+  <body class="transition-colors duration-300 dark:bg-slate-950 dark:text-slate-100">
+    <div id="root"></div>
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/service-worker.js')
+            .then(registration => {
+              console.log('SW registered: ', registration);
+            })
+            .catch(registrationError => {
+              console.log('SW registration failed: ', registrationError);
+            });
+        });
+      }
+    </script>
+  <script type="module" src="/index.tsx"></script>
+</body>
+</html>

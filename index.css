@@ -1,0 +1,211 @@
+
+:root {
+  --color-brand-50: 255 247 237;  /* #fff7ed */
+  --color-brand-100: 255 237 213; /* #ffedd5 */
+  --color-brand-200: 254 215 170; /* #fed7aa */
+  --color-brand-300: 253 186 116; /* #fdba74 */
+  --color-brand-400: 251 146 60;  /* #fb923c */
+  --color-brand-500: 249 115 22;  /* #f97316 */
+  --color-brand-600: 234 88 12;   /* #ea580c */
+  --color-brand-700: 194 65 12;   /* #c2410c */
+  --color-brand-800: 154 52 18;   /* #9a3412 */
+  --color-brand-900: 124 45 18;   /* #7c2d12 */
+}
+
+body {
+  background-color: #f8fafc;
+  color: #0f172a;
+  /* Prevent pull-to-refresh on mobile to allow custom implementation */
+  overscroll-behavior-y: none;
+}
+.dark body {
+  background-color: #0f172a;
+  color: #f1f5f9;
+}
+/* Custom scrollbar for webkit */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+.dark ::-webkit-scrollbar-thumb {
+  background: #475569;
+}
+
+/* Bottom Sheet Animation */
+@keyframes slide-up {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+.animate-slide-up {
+  animation: slide-up 0.3s ease-out forwards;
+}
+
+/* Shimmer Effect for Skeletons */
+.skeleton {
+  background: #f6f7f8;
+  background-image: linear-gradient(
+    to right,
+    #f6f7f8 0%,
+    #edeef1 20%,
+    #f6f7f8 40%,
+    #f6f7f8 100%
+  );
+  background-repeat: no-repeat;
+  background-size: 2000px 100%; 
+  animation: shimmer 1.5s infinite linear;
+}
+.dark .skeleton {
+  background: #1e293b;
+  background-image: linear-gradient(
+    to right,
+    #1e293b 0%,
+    #334155 20%,
+    #1e293b 40%,
+    #1e293b 100%
+  );
+}
+
+/* Accessibility: Visible Focus Indicators */
+:focus-visible {
+  outline: 3px solid #f97316;
+  outline-offset: 2px;
+}
+/* Ensure hidden inputs for custom controls don't mess up layout but remain accessible if needed */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* High Contrast Theme */
+.high-contrast {
+  --color-brand-50: 255 255 255;
+  --color-brand-100: 255 255 255;
+  --color-brand-200: 229 229 229;
+  --color-brand-300: 200 200 200;
+  --color-brand-400: 170 170 170;
+  /* Updated for AAA compliance (7:1 contrast on white) */
+  --color-brand-500: 140 46 0; /* #8c2e00 */
+  --color-brand-600: 107 35 0; /* #6b2300 */
+  --color-brand-700: 0 0 0;
+  --color-brand-800: 0 0 0;
+  --color-brand-900: 0 0 0;
+}
+
+.high-contrast body {
+  background-color: #ffffff;
+  color: #000000;
+}
+
+.high-contrast.dark body {
+  background-color: #000000;
+  color: #ffffff;
+  --color-brand-500: 251 191 36; /* #fbbf24 Yellow for dark mode contrast */
+  --color-brand-600: 245 158 11; /* #f59e0b */
+}
+
+/* High Contrast Element Overrides */
+.high-contrast * {
+  background-image: none !important;
+  font-weight: 700 !important; /* Bold text */
+  box-shadow: none !important;
+  text-shadow: none !important;
+}
+
+/* Ensure borders are visible and thick */
+.high-contrast .border,
+.high-contrast .border-t,
+.high-contrast .border-b,
+.high-contrast .border-l,
+.high-contrast .border-r,
+.high-contrast input,
+.high-contrast textarea,
+.high-contrast select,
+.high-contrast button {
+  border-width: 2px !important;
+  border-style: solid !important;
+  border-color: currentColor !important;
+}
+
+/* Specific component visibility adjustments for HC */
+.high-contrast .bg-white {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+}
+.high-contrast.dark .bg-white {
+  background-color: #000000 !important;
+  color: #ffffff !important;
+}
+
+.high-contrast .bg-slate-50, 
+.high-contrast .bg-slate-100,
+.high-contrast .bg-gray-50,
+.high-contrast .bg-gray-100,
+.high-contrast .bg-blue-50,
+.high-contrast .bg-green-50,
+.high-contrast .bg-red-50 {
+  background-color: transparent !important;
+  border: 2px solid currentColor !important;
+}
+
+/* Improve button contrast in HC */
+.high-contrast button.bg-brand-600,
+.high-contrast .bg-brand-600 {
+  background-color: rgb(var(--color-brand-600)) !important;
+  color: #ffffff !important;
+  border: 2px solid #000000 !important;
+}
+.high-contrast.dark button.bg-brand-600,
+.high-contrast.dark .bg-brand-600 {
+  background-color: rgb(var(--color-brand-500)) !important;
+  color: #000000 !important;
+  border: 2px solid #ffffff !important;
+}
+
+/* Fix text contrast on colored backgrounds */
+.high-contrast .text-white {
+  color: #ffffff !important;
+}
+.high-contrast.dark .text-white {
+  color: #000000 !important; /* In dark HC, bg might be white/light */
+}
+
+/* Links */
+.high-contrast a,
+.high-contrast button.text-brand-600,
+.high-contrast .text-brand-600 {
+  text-decoration: underline !important;
+  color: #0000EE !important;
+}
+.high-contrast.dark a,
+.high-contrast.dark button.text-brand-600,
+.high-contrast.dark .text-brand-600 {
+  color: #FFFF00 !important; /* Yellow on Black for links */
+}
+
+/* Patterns for color independence in HC */
+.high-contrast .pattern-diagonal {
+  background: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 5px,
+    currentColor 5px,
+    currentColor 7px
+  ) !important;
+}
+.high-contrast .pattern-dots {
+  background: radial-gradient(currentColor 20%, transparent 20%) !important;
+  background-size: 8px 8px !important;
+}
