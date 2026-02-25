@@ -1,8 +1,8 @@
 
 import { GoogleGenAI, Type } from "@google/genai";
-import { RouteResponse, SearchParams, TravelOption, ChatMessage } from "../types";
-import { calculateCabPrice, parseDistanceToKm, parseDurationToMins, predictPriceTrend } from "./pricingService";
-import { generateDeepLink } from "./deepLinkService";
+import { RouteResponse, SearchParams, TravelOption, ChatMessage } from "../types.ts";
+import { calculateCabPrice, parseDistanceToKm, parseDurationToMins, predictPriceTrend } from "./pricingService.ts";
+import { generateDeepLink } from "./deepLinkService.ts";
 
 // Helper for exponential backoff retry
 const withRetry = async <T>(fn: () => Promise<T>, retries = 3, delay = 1000): Promise<T> => {
@@ -59,7 +59,7 @@ export const fetchTravelOptionsInternal = async (
     
     Passengers: ${params.passengers} (Prices must be TOTAL for all passengers)
     
-    Modes to include: CAB, BUS, TRAIN, FLIGHT.
+    Modes to include: You MUST provide a diverse mix of CAB, BUS, TRAIN, and FLIGHT options. Do not just provide one mode.
     
     For each option:
     1. 'distance': Estimate precise road/track distance.
@@ -77,7 +77,7 @@ export const fetchTravelOptionsInternal = async (
       model: "gemini-3-flash-preview",
       contents: prompt,
       config: {
-        systemInstruction: "You are a world-class travel expert for the Indian market. You provide precise, realistic travel options across Cabs, Buses, Trains, and Flights. You understand Indian geography, typical travel times, and pricing nuances (like surge for cabs or dynamic pricing for flights). Keep the JSON response concise and avoid redundant information.",
+        systemInstruction: "You are a world-class travel expert for the Indian market. You provide precise, realistic travel options across Cabs, Buses, Trains, and Flights. You MUST always return a variety of transport modes (at least one of each: CAB, BUS, TRAIN, FLIGHT) whenever possible for the given route. You understand Indian geography, typical travel times, and pricing nuances. Keep the JSON response concise.",
         responseMimeType: "application/json",
         responseSchema: {
           type: Type.OBJECT,
@@ -281,7 +281,7 @@ const processOption = (opt: TravelOption, origin: string, time: string, destinat
 const mockTravelData = (params: SearchParams): RouteResponse => {
   const options: TravelOption[] = [
     {
-      id: "1",
+      id: "m1",
       mode: "FLIGHT",
       provider: "IndiGo",
       departureTime: "10:00 AM",
@@ -295,12 +295,60 @@ const mockTravelData = (params: SearchParams): RouteResponse => {
       tag: "Fastest",
       carbonEmission: `${80 * params.passengers} kg`,
       ecoScore: 40
+    },
+    {
+      id: "m2",
+      mode: "TRAIN",
+      provider: "Vande Bharat Express",
+      departureTime: "06:00 AM",
+      arrivalTime: "02:00 PM",
+      duration: "8h 00m",
+      distance: "500 km",
+      price: 1800 * params.passengers,
+      currency: "INR",
+      rating: 4.8,
+      features: ["AC Chair Car", "Meals Included"],
+      tag: "Best Value",
+      carbonEmission: `${15 * params.passengers} kg`,
+      ecoScore: 85
+    },
+    {
+      id: "m3",
+      mode: "BUS",
+      provider: "ZingBus",
+      departureTime: "09:00 PM",
+      arrivalTime: "07:00 AM",
+      duration: "10h 00m",
+      distance: "500 km",
+      price: 1200 * params.passengers,
+      currency: "INR",
+      rating: 4.0,
+      features: ["AC Sleeper", "Water Bottle"],
+      tag: "Cheapest",
+      carbonEmission: `${25 * params.passengers} kg`,
+      ecoScore: 70
+    },
+    {
+      id: "m4",
+      mode: "CAB",
+      provider: "Uber Intercity",
+      departureTime: "Flexible",
+      arrivalTime: "Flexible",
+      duration: "7h 30m",
+      distance: "500 km",
+      price: 8500,
+      currency: "INR",
+      rating: 4.5,
+      features: ["Door-to-Door", "Private"],
+      tag: "Eco-Choice",
+      carbonEmission: `${120 * params.passengers} kg`,
+      ecoScore: 30
     }
   ];
 
   const returnOptions: TravelOption[] = [
      {
-      id: "r1",
+      id: "mr1",
       mode: "FLIGHT",
       provider: "Vistara",
       departureTime: "06:00 PM",
@@ -314,6 +362,22 @@ const mockTravelData = (params: SearchParams): RouteResponse => {
       tag: "Best Value",
       carbonEmission: `${80 * params.passengers} kg`,
       ecoScore: 40
+    },
+    {
+      id: "mr2",
+      mode: "TRAIN",
+      provider: "Shatabdi Express",
+      departureTime: "04:00 PM",
+      arrivalTime: "10:30 PM",
+      duration: "6h 30m",
+      distance: "500 km",
+      price: 1500 * params.passengers,
+      currency: "INR",
+      rating: 4.6,
+      features: ["Executive Class", "Fastest Train"],
+      tag: "Fastest",
+      carbonEmission: `${15 * params.passengers} kg`,
+      ecoScore: 85
     }
   ];
 

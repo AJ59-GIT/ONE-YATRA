@@ -2,7 +2,10 @@ import path from "path";
 import { fileURLToPath } from "url";
 import express from "express";
 import { createServer as createViteServer } from "vite";
-import { fetchTravelOptionsInternal, chatWithAIInternal } from "./services/aiProvider";
+import { fetchTravelOptionsInternal, chatWithAIInternal } from "./services/aiProvider.ts";
+
+console.log("Initializing OneYatra Server...");
+console.log("Environment:", process.env.NODE_ENV || "development");
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
