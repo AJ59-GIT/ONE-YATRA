@@ -64,7 +64,9 @@ export interface TravelOption {
   androidIntent?: string;
   surgeMultiplier?: number;
   carbonEmission?: string;
-  trustBadges?: TrustBadge[]; // New field
+  trustBadges?: TrustBadge[];
+  priceTrend?: 'UP' | 'DOWN' | 'STABLE'; // New field
+  realTimeStatus?: string; // New field
 }
 
 export interface RouteResponse {

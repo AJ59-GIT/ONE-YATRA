@@ -81,3 +81,10 @@ export const parseDistanceToKm = (distanceStr: string): number => {
   const match = distanceStr.match(/(\d+(\.\d+)?)/);
   return match ? parseFloat(match[0]) : 10;
 };
+
+export const predictPriceTrend = (mode: string): 'UP' | 'DOWN' | 'STABLE' => {
+  const rand = Math.random();
+  if (mode === 'FLIGHT' || mode === 'TRAIN') return rand > 0.3 ? 'UP' : 'STABLE';
+  if (mode === 'CAB') return rand > 0.8 ? 'UP' : (rand < 0.2 ? 'DOWN' : 'STABLE');
+  return 'STABLE';
+};

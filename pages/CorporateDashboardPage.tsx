@@ -76,69 +76,104 @@ export const CorporateDashboardPage: React.FC = () => {
           {/* DASHBOARD TAB */}
           {activeTab === 'DASHBOARD' && (
               <div className="animate-in fade-in slide-in-from-bottom-4">
-                {/* Stats */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-                    <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
-                        <div className="text-gray-500 text-xs uppercase font-bold">Total Spend (YTD)</div>
-                        <div className="text-2xl font-bold text-gray-900 mt-1">₹{(profile.spentAmount / 100000).toFixed(2)}L</div>
-                        <div className="w-full bg-gray-100 h-1.5 rounded-full mt-2"><div className="bg-brand-500 h-1.5 rounded-full" style={{width: '25%'}}></div></div>
+                {/* Bento Grid Layout */}
+                <div className="grid grid-cols-1 md:grid-cols-6 md:grid-rows-2 gap-4 mb-8">
+                    
+                    {/* Main Spend Card - Large */}
+                    <div className="md:col-span-3 md:row-span-2 bg-white p-8 rounded-2xl border border-gray-200 shadow-sm flex flex-col justify-between">
+                        <div>
+                            <div className="text-gray-500 text-xs uppercase font-bold tracking-wider mb-1">Total Spend (YTD)</div>
+                            <div className="text-5xl font-black text-gray-900">₹{(profile.spentAmount / 100000).toFixed(2)}L</div>
+                        </div>
+                        <div className="mt-8">
+                            <div className="flex justify-between text-xs font-bold text-gray-400 mb-2 uppercase">Budget Utilization</div>
+                            <div className="w-full bg-gray-100 h-3 rounded-full overflow-hidden">
+                                <div className="bg-brand-500 h-full rounded-full transition-all duration-1000" style={{width: `${(profile.spentAmount / profile.totalBudget) * 100}%`}}></div>
+                            </div>
+                            <div className="flex justify-between mt-2 text-[10px] font-bold text-gray-500">
+                                <span>SPENT: ₹{(profile.spentAmount / 100000).toFixed(2)}L</span>
+                                <span>LIMIT: ₹{(profile.totalBudget / 100000).toFixed(2)}L</span>
+                            </div>
+                        </div>
                     </div>
-                    <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
-                        <div className="text-gray-500 text-xs uppercase font-bold">Pending Approvals</div>
-                        <div className="text-2xl font-bold text-orange-500 mt-1">{approvals.filter(a => a.status === 'PENDING').length}</div>
-                        <div className="text-xs text-gray-400 mt-1">Action needed</div>
+
+                    {/* Pending Approvals - Medium */}
+                    <div className="md:col-span-3 bg-orange-50 p-6 rounded-2xl border border-orange-100 shadow-sm flex items-center justify-between group cursor-pointer hover:bg-orange-100 transition-colors" onClick={() => setActiveTab('APPROVALS')}>
+                        <div>
+                            <div className="text-orange-700 text-xs uppercase font-bold tracking-wider mb-1">Pending Approvals</div>
+                            <div className="text-4xl font-black text-orange-600">{approvals.filter(a => a.status === 'PENDING').length}</div>
+                            <div className="text-xs text-orange-800/60 mt-1 font-medium">Requires your immediate attention</div>
+                        </div>
+                        <div className="bg-white p-3 rounded-full shadow-sm group-hover:translate-x-1 transition-transform">
+                            <ArrowRight className="h-6 w-6 text-orange-500" />
+                        </div>
                     </div>
-                    <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
-                        <div className="text-gray-500 text-xs uppercase font-bold">Active Travelers</div>
-                        <div className="text-2xl font-bold text-blue-600 mt-1">14</div>
-                        <div className="text-xs text-gray-400 mt-1">Currently on trip</div>
+
+                    {/* Active Travelers - Small */}
+                    <div className="md:col-span-1 bg-blue-50 p-6 rounded-2xl border border-blue-100 shadow-sm flex flex-col justify-center text-center">
+                        <div className="text-blue-700 text-[10px] uppercase font-bold tracking-wider mb-1">Active</div>
+                        <div className="text-3xl font-black text-blue-600">14</div>
+                        <div className="text-[10px] text-blue-800/60 font-bold uppercase mt-1">Travelers</div>
                     </div>
-                    <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
-                        <div className="text-gray-500 text-xs uppercase font-bold">Budget Remaining</div>
-                        <div className="text-2xl font-bold text-green-600 mt-1">₹{((profile.totalBudget - profile.spentAmount) / 100000).toFixed(2)}L</div>
+
+                    {/* Budget Remaining - Small/Medium */}
+                    <div className="md:col-span-2 bg-green-50 p-6 rounded-2xl border border-green-100 shadow-sm flex flex-col justify-center">
+                        <div className="text-green-700 text-[10px] uppercase font-bold tracking-wider mb-1">Remaining Budget</div>
+                        <div className="text-2xl font-black text-green-600">₹{((profile.totalBudget - profile.spentAmount) / 100000).toFixed(2)}L</div>
+                        <div className="flex items-center gap-1 mt-1">
+                            <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+                            <span className="text-[10px] text-green-800/60 font-bold uppercase">Healthy Status</span>
+                        </div>
                     </div>
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    {/* Department Spend */}
-                    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                        <h3 className="font-bold text-gray-800 mb-4 flex items-center"><PieChart className="h-5 w-5 mr-2 text-gray-500"/> Department Usage</h3>
-                        <div className="space-y-4">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    {/* Department Spend - 2/3 width */}
+                    <div className="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
+                        <div className="flex justify-between items-center mb-8">
+                            <h3 className="font-bold text-gray-900 text-lg flex items-center"><PieChart className="h-5 w-5 mr-2 text-brand-500"/> Departmental Allocation</h3>
+                            <button className="text-xs font-bold text-brand-600 hover:underline uppercase tracking-wider">View Details</button>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8">
                             {departments.map(dept => (
-                                <div key={dept.id}>
-                                    <div className="flex justify-between text-sm mb-1">
-                                        <span className="font-medium text-gray-700">{dept.name}</span>
-                                        <span className="text-gray-500">₹{dept.currentSpend.toLocaleString()} / ₹{dept.monthlyBudget.toLocaleString()}</span>
+                                <div key={dept.id} className="group">
+                                    <div className="flex justify-between text-xs mb-2">
+                                        <span className="font-bold text-gray-900 uppercase tracking-tight">{dept.name}</span>
+                                        <span className="text-gray-500 font-mono">₹{dept.currentSpend.toLocaleString()}</span>
                                     </div>
                                     <div className="w-full bg-gray-100 h-2 rounded-full overflow-hidden">
                                         <div 
-                                            className={`h-full rounded-full ${dept.currentSpend > dept.monthlyBudget * 0.9 ? 'bg-red-500' : 'bg-blue-500'}`} 
+                                            className={`h-full rounded-full transition-all duration-1000 ${dept.currentSpend > dept.monthlyBudget * 0.9 ? 'bg-red-500' : 'bg-brand-500'}`} 
                                             style={{ width: `${Math.min(100, (dept.currentSpend / dept.monthlyBudget) * 100)}%` }}
                                         ></div>
+                                    </div>
+                                    <div className="flex justify-between mt-1.5">
+                                        <span className="text-[10px] text-gray-400 font-medium uppercase">Utilized: {Math.round((dept.currentSpend / dept.monthlyBudget) * 100)}%</span>
+                                        <span className="text-[10px] text-gray-400 font-medium uppercase">Limit: ₹{(dept.monthlyBudget / 1000).toFixed(0)}k</span>
                                     </div>
                                 </div>
                             ))}
                         </div>
                     </div>
 
-                    {/* Quick Policies */}
-                    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                        <h3 className="font-bold text-gray-800 mb-4 flex items-center"><Settings className="h-5 w-5 mr-2 text-gray-500"/> Active Policies</h3>
-                        <div className="space-y-3 text-sm">
-                            <div className="flex justify-between p-3 bg-gray-50 rounded-lg">
-                                <span className="text-gray-600">Max Flight Price</span>
-                                <span className="font-mono font-bold">₹{policy?.maxFlightPrice.toLocaleString()}</span>
+                    {/* Quick Policies - 1/3 width */}
+                    <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 flex flex-col">
+                        <h3 className="font-bold text-gray-900 text-lg mb-6 flex items-center"><Settings className="h-5 w-5 mr-2 text-brand-500"/> Policy Guardrails</h3>
+                        <div className="space-y-4 flex-1">
+                            <div className="p-4 bg-slate-50 rounded-xl border border-slate-100 group hover:border-brand-200 transition-colors">
+                                <div className="text-[10px] font-bold text-slate-400 uppercase mb-1">Max Flight (DOM)</div>
+                                <div className="text-xl font-black text-slate-900">₹{policy?.maxFlightPrice.toLocaleString()}</div>
                             </div>
-                            <div className="flex justify-between p-3 bg-gray-50 rounded-lg">
-                                <span className="text-gray-600">Min Advance Booking</span>
-                                <span className="font-mono font-bold">{policy?.minAdvanceBookingDays} Days</span>
+                            <div className="p-4 bg-slate-50 rounded-xl border border-slate-100 group hover:border-brand-200 transition-colors">
+                                <div className="text-[10px] font-bold text-slate-400 uppercase mb-1">Advance Booking</div>
+                                <div className="text-xl font-black text-slate-900">{policy?.minAdvanceBookingDays} Days</div>
                             </div>
-                            <div className="flex justify-between p-3 bg-gray-50 rounded-lg">
-                                <span className="text-gray-600">Approval Threshold</span>
-                                <span className="font-mono font-bold">₹{policy?.requireApprovalAbove.toLocaleString()}</span>
+                            <div className="p-4 bg-slate-50 rounded-xl border border-slate-100 group hover:border-brand-200 transition-colors">
+                                <div className="text-[10px] font-bold text-slate-400 uppercase mb-1">Approval Threshold</div>
+                                <div className="text-xl font-black text-slate-900">₹{policy?.requireApprovalAbove.toLocaleString()}</div>
                             </div>
                         </div>
-                        <Button className="w-full mt-4" variant="outline" onClick={() => setActiveTab('POLICIES')}>Edit Policies</Button>
+                        <Button className="w-full mt-8" variant="outline" onClick={() => setActiveTab('POLICIES')}>Manage Policies</Button>
                     </div>
                 </div>
               </div>

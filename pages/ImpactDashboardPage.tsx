@@ -36,45 +36,75 @@ export const ImpactDashboardPage: React.FC<ImpactDashboardPageProps> = ({ onBack
 
       <div className="max-w-4xl mx-auto px-4 -mt-10 relative z-10 space-y-6">
          
-         {/* Main Stats */}
-         <div className="bg-white rounded-2xl shadow-xl p-6 grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
-            <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-100">
-               <div className="inline-flex p-3 rounded-full bg-emerald-100 text-emerald-600 mb-3">
-                  <Wind className="h-6 w-6" />
+         {/* Bento Grid Stats */}
+         <div className="grid grid-cols-1 md:grid-cols-4 md:grid-rows-2 gap-4">
+            
+            {/* CO2 Saved - Large */}
+            <div className="md:col-span-2 md:row-span-2 bg-white rounded-2xl shadow-xl p-8 flex flex-col justify-between border border-emerald-100">
+               <div>
+                  <div className="inline-flex p-3 rounded-2xl bg-emerald-100 text-emerald-600 mb-4">
+                     <Wind className="h-8 w-8" />
+                  </div>
+                  <h3 className="text-gray-500 text-xs font-bold uppercase tracking-widest mb-1">Carbon Footprint Saved</h3>
+                  <div className="text-5xl font-black text-emerald-900">{co2Saved} kg</div>
                </div>
-               <div className="text-3xl font-bold text-emerald-900">{co2Saved} kg</div>
-               <div className="text-xs text-emerald-700 font-medium uppercase tracking-wide">CO2 Saved</div>
+               <div className="mt-8 pt-6 border-t border-emerald-50">
+                  <p className="text-xs text-emerald-700 font-medium leading-relaxed">
+                     That's equivalent to avoiding {Math.round(co2Saved / 0.2)} km of driving in a standard petrol car!
+                  </p>
+               </div>
             </div>
-            <div className="p-4 rounded-xl bg-green-50 border border-green-100">
-               <div className="inline-flex p-3 rounded-full bg-green-100 text-green-600 mb-3">
-                  <TreeDeciduous className="h-6 w-6" />
+
+            {/* Trees Equivalent - Medium */}
+            <div className="md:col-span-2 bg-green-600 rounded-2xl shadow-lg p-6 text-white flex items-center justify-between overflow-hidden relative">
+               <div className="relative z-10">
+                  <div className="text-green-100 text-[10px] uppercase font-bold tracking-wider mb-1">Nature Impact</div>
+                  <div className="text-4xl font-black">{treesEquivalent}</div>
+                  <div className="text-xs text-green-100 font-medium uppercase mt-1">Mature Trees Planted</div>
                </div>
-               <div className="text-3xl font-bold text-green-900">{treesEquivalent}</div>
-               <div className="text-xs text-green-700 font-medium uppercase tracking-wide">Trees Planted Equiv.</div>
+               <TreeDeciduous className="h-24 w-24 text-green-500/30 absolute -right-4 -bottom-4 rotate-12" />
             </div>
-            <div className="p-4 rounded-xl bg-teal-50 border border-teal-100">
-               <div className="inline-flex p-3 rounded-full bg-teal-100 text-teal-600 mb-3">
-                  <Award className="h-6 w-6" />
-               </div>
-               <div className="text-3xl font-bold text-teal-900">Top 10%</div>
-               <div className="text-xs text-teal-700 font-medium uppercase tracking-wide">Eco Traveler Rank</div>
+
+            {/* Rank - Small */}
+            <div className="md:col-span-1 bg-white rounded-2xl shadow-md p-6 border border-teal-100 flex flex-col items-center justify-center text-center">
+               <Award className="h-6 w-6 text-teal-600 mb-2" />
+               <div className="text-xl font-black text-teal-900">Top 10%</div>
+               <div className="text-[10px] text-teal-700 font-bold uppercase">Global Rank</div>
+            </div>
+
+            {/* Trips - Small */}
+            <div className="md:col-span-1 bg-white rounded-2xl shadow-md p-6 border border-emerald-100 flex flex-col items-center justify-center text-center">
+               <Leaf className="h-6 w-6 text-emerald-600 mb-2" />
+               <div className="text-xl font-black text-emerald-900">{totalTrips}</div>
+               <div className="text-[10px] text-emerald-700 font-bold uppercase">Eco Journeys</div>
             </div>
          </div>
 
-         {/* Visual Chart (CSS only for simplicity) */}
-         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <h3 className="font-bold text-gray-900 mb-6 flex items-center">
-               <Leaf className="h-5 w-5 text-emerald-500 mr-2" /> Monthly Impact
-            </h3>
-            <div className="flex items-end justify-between h-40 gap-2">
+         {/* Visual Chart Section */}
+         <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
+            <div className="flex justify-between items-center mb-8">
+               <h3 className="font-bold text-gray-900 flex items-center">
+                  <Leaf className="h-5 w-5 text-emerald-500 mr-2" /> Impact Velocity
+               </h3>
+               <div className="flex gap-2">
+                  <span className="w-3 h-3 rounded-full bg-emerald-500"></span>
+                  <span className="text-[10px] font-bold text-gray-400 uppercase">CO2 (kg)</span>
+               </div>
+            </div>
+            <div className="flex items-end justify-between h-48 gap-3">
                {[40, 65, 30, 80, 50, 90].map((h, i) => (
-                  <div key={i} className="flex-1 flex flex-col items-center gap-2 group">
-                     <div className="w-full bg-emerald-100 rounded-t-lg relative transition-all duration-500 hover:bg-emerald-200" style={{ height: `${h}%` }}>
-                        <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity">
-                           {h}kg
+                  <div key={i} className="flex-1 flex flex-col items-center gap-3 group">
+                     <div className="w-full bg-emerald-50 rounded-xl relative transition-all duration-500 hover:bg-emerald-100 cursor-pointer" style={{ height: `100%` }}>
+                        <div 
+                           className="absolute bottom-0 left-0 right-0 bg-emerald-500 rounded-xl transition-all duration-1000 ease-out group-hover:bg-emerald-600" 
+                           style={{ height: `${h}%` }}
+                        >
+                           <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-[10px] px-2 py-1 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity shadow-xl whitespace-nowrap z-20">
+                              {h} kg saved
+                           </div>
                         </div>
                      </div>
-                     <span className="text-[10px] text-gray-400 font-bold">
+                     <span className="text-[10px] text-gray-400 font-black uppercase tracking-tighter">
                         {['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'][i]}
                      </span>
                   </div>

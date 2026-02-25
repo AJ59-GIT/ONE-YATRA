@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Clock, Star, Leaf, IndianRupee, Zap, ChevronDown, ChevronUp, Split, Check, Heart, ShieldCheck, TrendingUp, Users, Flag } from 'lucide-react';
+import { Clock, Star, Leaf, IndianRupee, Zap, ChevronDown, ChevronUp, Split, Check, Heart, ShieldCheck, TrendingUp, TrendingDown, Minus, Users, Flag, MapPin } from 'lucide-react';
 import { TravelOption } from '../types';
 import { TransportIcon } from './TransportIcon';
 import { Button } from './Button';
@@ -130,6 +130,14 @@ export const TravelCard: React.FC<TravelCardProps> = ({
               
               {/* New Trust Indicators */}
               <TrustIndicators badges={displayOption.trustBadges || []} />
+
+              {/* Real-time Status */}
+              {option.realTimeStatus && (
+                <div className="mt-2 flex items-center gap-1.5 text-[10px] font-bold text-brand-600 animate-pulse">
+                  <MapPin className="h-3 w-3" />
+                  {option.realTimeStatus}
+                </div>
+              )}
             </div>
           </div>
 
@@ -181,6 +189,20 @@ export const TravelCard: React.FC<TravelCardProps> = ({
                ) : (
                  <div className="text-[10px] text-gray-400 flex items-center justify-end mt-0.5">
                     <Users className="h-3 w-3 mr-1" /> {bookedCount} booked today
+                 </div>
+               )}
+
+               {/* Price Trend */}
+               {option.priceTrend && (
+                 <div className={`text-[10px] font-bold flex items-center justify-end mt-1 ${
+                   option.priceTrend === 'UP' ? 'text-red-500' : 
+                   option.priceTrend === 'DOWN' ? 'text-green-600' : 'text-gray-400'
+                 }`}>
+                   {option.priceTrend === 'UP' ? <TrendingUp className="h-3 w-3 mr-1" /> : 
+                    option.priceTrend === 'DOWN' ? <TrendingDown className="h-3 w-3 mr-1" /> : 
+                    <Minus className="h-3 w-3 mr-1" />}
+                   {option.priceTrend === 'UP' ? 'Prices rising' : 
+                    option.priceTrend === 'DOWN' ? 'Price drop' : 'Price stable'}
                  </div>
                )}
              </div>
