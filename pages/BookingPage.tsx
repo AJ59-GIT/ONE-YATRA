@@ -17,6 +17,7 @@ import { useSettings } from '../contexts/SettingsContext';
 import { checkPolicyCompliance, submitForApproval } from '../services/corporateService';
 import { validateGiftCard, redeemGiftCard } from '../services/giftCardService';
 import { getDocuments } from '../services/documentService'; 
+import { validateIdNumber, IdDocType } from '../utils/idValidation';
 
 // ... existing interfaces and constants ...
 interface BookingPageProps {
@@ -328,10 +329,21 @@ export const BookingPage: React.FC<BookingPageProps> = ({ option, origin, destin
       if (!p.name.trim()) { newErrors[`name_${idx}`] = 'Name is required'; isValid = false; }
       if (!p.age || Number(p.age) <= 0) { newErrors[`age_${idx}`] = 'Valid age is required'; isValid = false; }
       if (!p.gender) { newErrors[`gender_${idx}`] = 'Gender is required'; isValid = false; }
-      if (['FLIGHT', 'TRAIN'].includes(option.mode) && (!p.idType || !p.idNumber)) {
-         if(!p.idType) newErrors[`idType_${idx}`] = 'ID Type required';
-         if(!p.idNumber) newErrors[`idNumber_${idx}`] = 'ID Number required';
-         isValid = false;
+      if (['FLIGHT', 'TRAIN'].includes(option.mode)) {
+         if(!p.idType) {
+           newErrors[`idType_${idx}`] = 'ID Type required';
+           isValid = false;
+         }
+         if(!p.idNumber) {
+           newErrors[`idNumber_${idx}`] = 'ID Number required';
+           isValid = false;
+         } else {
+           const validation = validateIdNumber(p.idType as IdDocType, p.idNumber);
+           if (!validation.isValid) {
+             newErrors[`idNumber_${idx}`] = validation.error || 'Invalid ID format';
+             isValid = false;
+           }
+         }
       }
     });
 
@@ -661,23 +673,59 @@ export const BookingPage: React.FC<BookingPageProps> = ({ option, origin, destin
                             <div className="grid grid-cols-3 gap-3">
                                <select 
                                  value={passenger.idType || ''}
-                                 onChange={(e) => updatePassenger(index, 'idType', e.target.value)}
+                                 onChange={(e) => {
+                                   const newType = e.target.value;
+                                   updatePassenger(index, 'idType', newType);
+                                   if (passenger.idNumber) {
+                                     const v = validateIdNumber(newType as IdDocType, passenger.idNumber);
+                                     if (!v.isValid) {
+                                       setErrors(prev => ({ ...prev, [`idNumber_${index}`]: v.error || 'Invalid format' }));
+                                     } else {
+                                       setErrors(prev => {
+                                         const next = { ...prev };
+                                         delete next[`idNumber_${index}`];
+                                         return next;
+                                       });
+                                     }
+                                   }
+                                 }}
                                  className={`${inputClasses} ${errors[`idType_${index}`] ? 'border-red-500' : ''}`}
                                >
                                   <option value="">Select ID</option>
                                   <option value="PASSPORT">Passport</option>
                                   <option value="AADHAAR">Aadhaar</option>
                                   <option value="PAN">PAN</option>
+                                  <option value="VOTER_ID">Voter ID</option>
+                                  <option value="DRIVING_LICENSE">Driving License</option>
                                </select>
                                <input 
                                  type="text"
                                  value={passenger.idNumber || ''}
-                                 onChange={(e) => updatePassenger(index, 'idNumber', e.target.value)}
+                                 onChange={(e) => {
+                                   const val = e.target.value;
+                                   updatePassenger(index, 'idNumber', val);
+                                   if (passenger.idType) {
+                                     const v = validateIdNumber(passenger.idType as IdDocType, val);
+                                     if (!v.isValid) {
+                                       setErrors(prev => ({ ...prev, [`idNumber_${index}`]: v.error || 'Invalid format' }));
+                                     } else {
+                                       setErrors(prev => {
+                                         const next = { ...prev };
+                                         delete next[`idNumber_${index}`];
+                                         return next;
+                                       });
+                                     }
+                                   }
+                                 }}
                                  placeholder="ID Number"
                                  className={`col-span-2 ${inputClasses} ${errors[`idNumber_${index}`] ? 'border-red-500' : ''}`}
                                />
                             </div>
-                            {(errors[`idType_${index}`] || errors[`idNumber_${index}`]) && <p className="text-xs text-red-600 mt-1 font-bold">ID details required.</p>}
+                            {(errors[`idType_${index}`] || errors[`idNumber_${index}`]) && (
+                              <p className="text-xs text-red-600 mt-1 font-bold">
+                                {errors[`idNumber_${index}`] || errors[`idType_${index}`] || 'ID details required.'}
+                              </p>
+                            )}
                          </div>
                       )}
                    </div>

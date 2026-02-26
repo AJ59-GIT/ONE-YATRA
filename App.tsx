@@ -7,6 +7,7 @@ import { SMSNotification } from './components/SMSNotification';
 import { BottomNavigation } from './components/BottomNavigation';
 import { SearchParams, AppView, TravelOption, TripSegment, Booking } from './types';
 import { requestPushPermission } from './services/notificationService';
+import { logoutUser } from './services/authService';
 import { useSwipe } from './hooks/useSwipe';
 import { useVibration } from './hooks/useVibration';
 import { ChatWidget } from './components/ChatWidget';
@@ -81,8 +82,8 @@ const App: React.FC = () => {
     if(!localStorage.getItem('oneyatra_onboarding_seen')) setShowOnboarding(true);
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem('oneyatra_user');
+  const handleLogout = async () => {
+    await logoutUser();
     setIsLoggedIn(false);
     setCurrentView('LOGIN');
   }

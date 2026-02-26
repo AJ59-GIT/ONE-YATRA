@@ -171,7 +171,7 @@ export interface EmergencyContact {
 
 export interface UserDocument {
   id: string;
-  type: 'PASSPORT' | 'VISA' | 'AADHAAR' | 'PAN' | 'OTHER';
+  type: 'PASSPORT' | 'VISA' | 'AADHAAR' | 'PAN' | 'VOTER_ID' | 'DRIVING_LICENSE' | 'OTHER';
   number: string;
   holderName: string;
   isVerified: boolean;

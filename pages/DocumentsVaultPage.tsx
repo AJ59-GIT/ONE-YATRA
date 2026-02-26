@@ -6,6 +6,7 @@ import { getDocuments, saveDocument, deleteDocument, performOCR, checkExpiry } f
 import { Button } from '../components/Button';
 import { Input } from '../components/Input';
 import { useSettings } from '../contexts/SettingsContext';
+import { validateIdNumber, IdDocType } from '../utils/idValidation';
 
 interface DocumentsVaultPageProps {
   onBack: () => void;
@@ -21,6 +22,7 @@ export const DocumentsVaultPage: React.FC<DocumentsVaultPageProps> = ({ onBack }
   const [scanStep, setScanStep] = useState<'IDLE' | 'SCANNING' | 'REVIEW'>('IDLE');
   const [scannedData, setScannedData] = useState<Partial<UserDocument>>({});
   const [filePreview, setFilePreview] = useState<string | null>(null);
+  const [validationError, setValidationError] = useState<string | null>(null);
 
   // Share Modal
   const [shareDocId, setShareDocId] = useState<string | null>(null);
@@ -53,17 +55,25 @@ export const DocumentsVaultPage: React.FC<DocumentsVaultPageProps> = ({ onBack }
     reader.readAsDataURL(file);
 
     setScanStep('SCANNING');
+    setValidationError(null);
     try {
       const result = await performOCR(file);
+      const validation = validateIdNumber('PASSPORT', result.number);
+      
       setScannedData({
         type: 'PASSPORT', // Default, user can change
         holderName: result.holderName,
-        number: result.number,
+        number: validation.normalized,
         expiryDate: result.expiryDate,
         dob: result.dob,
         gender: result.gender,
         isVerified: true
       });
+
+      if (!validation.isValid) {
+        setValidationError(validation.error || 'Invalid ID format');
+      }
+
       setScanStep('REVIEW');
     } catch (err) {
       alert("Scan failed. Please enter details manually.");
@@ -78,10 +88,17 @@ export const DocumentsVaultPage: React.FC<DocumentsVaultPageProps> = ({ onBack }
         return;
     }
 
+    const validation = validateIdNumber(scannedData.type as IdDocType || 'OTHER', scannedData.number);
+    if (!validation.isValid) {
+      setValidationError(validation.error || 'Invalid ID format');
+      alert(validation.error || 'Invalid ID format');
+      return;
+    }
+
     const newDoc: UserDocument = {
       id: `doc_${Date.now()}`,
       type: scannedData.type || 'OTHER',
-      number: scannedData.number,
+      number: validation.normalized,
       holderName: scannedData.holderName,
       expiryDate: scannedData.expiryDate,
       dob: scannedData.dob,
@@ -184,15 +201,24 @@ export const DocumentsVaultPage: React.FC<DocumentsVaultPageProps> = ({ onBack }
                       <div className="grid grid-cols-2 gap-4">
                           <div>
                               <label className="block text-xs font-bold text-gray-700 mb-1">Doc Type</label>
-                              <select 
+                               <select 
                                 value={scannedData.type} 
-                                onChange={e => setScannedData({...scannedData, type: e.target.value as any})}
+                                onChange={e => {
+                                  const newType = e.target.value as IdDocType;
+                                  setScannedData({...scannedData, type: newType});
+                                  if (scannedData.number) {
+                                    const v = validateIdNumber(newType, scannedData.number);
+                                    setValidationError(v.isValid ? null : v.error || 'Invalid format');
+                                  }
+                                }}
                                 className="w-full p-2 border rounded-lg text-sm bg-white"
                               >
                                   <option value="PASSPORT">Passport</option>
                                   <option value="AADHAAR">Aadhaar</option>
                                   <option value="PAN">PAN Card</option>
                                   <option value="VISA">Visa</option>
+                                  <option value="VOTER_ID">Voter ID</option>
+                                  <option value="DRIVING_LICENSE">Driving License</option>
                                   <option value="OTHER">Other</option>
                               </select>
                           </div>
@@ -201,9 +227,15 @@ export const DocumentsVaultPage: React.FC<DocumentsVaultPageProps> = ({ onBack }
                               <input 
                                 type="text" 
                                 value={scannedData.number || ''} 
-                                onChange={e => setScannedData({...scannedData, number: e.target.value})}
-                                className="w-full p-2 border rounded-lg text-sm"
+                                onChange={e => {
+                                  const val = e.target.value;
+                                  setScannedData({...scannedData, number: val});
+                                  const v = validateIdNumber(scannedData.type as IdDocType || 'OTHER', val);
+                                  setValidationError(v.isValid ? null : v.error || 'Invalid format');
+                                }}
+                                className={`w-full p-2 border rounded-lg text-sm ${validationError ? 'border-red-500' : ''}`}
                               />
+                              {validationError && <p className="text-[10px] text-red-500 mt-1">{validationError}</p>}
                           </div>
                       </div>
 

@@ -3,6 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { User, MapPin, Shield, Camera, Save, X, Plus, Trash2, Edit2, AlertTriangle, Lock, LogOut, CheckCircle, Smartphone, Home, Briefcase, Key, Settings, Bell, Heart, Globe, Accessibility, Users, Contact, Star, Locate, Eye, EyeOff, Briefcase as BriefcaseIcon, Gift, Leaf, FileText, Scale } from 'lucide-react';
 import { UserProfile, Address, EmergencyContact, SavedTraveler, AppView } from '../types';
 import { getCurrentUser, updateUserProfile, changePassword, deleteAccount, logoutUser } from '../services/authService';
+import { validateIdNumber, IdDocType } from '../utils/idValidation';
 import { Button } from '../components/Button';
 import { getCityFromCoordinates } from '../services/locationService';
 import { useFocusTrap } from '../hooks/useFocusTrap';
@@ -40,6 +41,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onBack, onLogout, onNa
   const [isTravelerModalOpen, setIsTravelerModalOpen] = useState(false);
   const [editingTraveler, setEditingTraveler] = useState<SavedTraveler | null>(null);
   const [tempTraveler, setTempTraveler] = useState<SavedTraveler>({ id: '', name: '', age: '', gender: '', relation: 'Family' });
+  const [travelerValidationError, setTravelerValidationError] = useState<string | null>(null);
 
   // Security State
   const [passwords, setPasswords] = useState({ current: '', new: '', confirm: '' });
@@ -187,6 +189,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onBack, onLogout, onNa
 
   // --- Saved Traveler CRUD ---
   const openTravelerModal = (traveler?: SavedTraveler) => {
+    setTravelerValidationError(null);
     if (traveler) { setEditingTraveler(traveler); setTempTraveler({...traveler}); } 
     else { setEditingTraveler(null); setTempTraveler({ id: `t_${Date.now()}`, name: '', age: '', gender: '', relation: 'Family' }); }
     setIsTravelerModalOpen(true);
@@ -194,6 +197,16 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onBack, onLogout, onNa
 
   const saveTraveler = () => {
     if(!user || !tempTraveler.name) return;
+
+    if (tempTraveler.idType && tempTraveler.idNumber) {
+      const v = validateIdNumber(tempTraveler.idType as IdDocType, tempTraveler.idNumber);
+      if (!v.isValid) {
+        setTravelerValidationError(v.error || 'Invalid ID format');
+        return;
+      }
+      tempTraveler.idNumber = v.normalized;
+    }
+
     let list = [...(user.savedTravelers || [])];
     if (editingTraveler) list = list.map(t => t.id === editingTraveler.id ? tempTraveler : t);
     else list.push(tempTraveler);
@@ -225,6 +238,11 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onBack, onLogout, onNa
 
   const inputClasses = "w-full border border-gray-300 rounded-lg p-2.5 text-sm bg-white text-gray-900 dark:bg-slate-800 dark:text-white dark:border-slate-600 focus:ring-2 focus:ring-brand-500 outline-none transition-colors";
 
+  const handleLogout = async () => {
+    await logoutUser();
+    onLogout();
+  };
+
   if (!user) return <div className="p-10 text-center"><p>Loading profile...</p></div>;
 
   return (
@@ -238,13 +256,18 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onBack, onLogout, onNa
           </button>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Profile Settings</h1>
         </div>
-        {hasUnsavedChanges && (
-          <div className="flex items-center gap-3 animate-in fade-in slide-in-from-top-2">
-            <span className="text-xs text-orange-600 font-medium hidden sm:block">Unsaved changes</span>
-            <Button variant="outline" size="sm" onClick={handleCancel}>Cancel</Button>
-            <Button size="sm" onClick={handleSaveProfile} isLoading={isSaving}>Save Changes</Button>
-          </div>
-        )}
+        <div className="flex items-center gap-2">
+           <Button variant="outline" size="sm" onClick={handleLogout} className="text-red-600 border-red-200 hover:bg-red-50">
+              <LogOut className="h-4 w-4 mr-2" /> Logout
+           </Button>
+           {hasUnsavedChanges && (
+             <div className="flex items-center gap-3 animate-in fade-in slide-in-from-top-2">
+               <span className="text-xs text-orange-600 font-medium hidden sm:block">Unsaved changes</span>
+               <Button variant="outline" size="sm" onClick={handleCancel}>Cancel</Button>
+               <Button size="sm" onClick={handleSaveProfile} isLoading={isSaving}>Save Changes</Button>
+             </div>
+           )}
+        </div>
       </div>
 
       <div className="flex flex-col md:flex-row gap-8">
@@ -1014,22 +1037,39 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onBack, onLogout, onNa
                   <div className="grid grid-cols-3 gap-3 mb-3">
                       <select 
                         value={tempTraveler.idType || ''}
-                        onChange={e => setTempTraveler({...tempTraveler, idType: e.target.value as any})}
+                        onChange={e => {
+                          const newType = e.target.value as IdDocType;
+                          setTempTraveler({...tempTraveler, idType: newType});
+                          if (tempTraveler.idNumber) {
+                            const v = validateIdNumber(newType, tempTraveler.idNumber);
+                            setTravelerValidationError(v.isValid ? null : v.error || 'Invalid format');
+                          }
+                        }}
                         className={`col-span-1 ${inputClasses}`}
                       >
                           <option value="">Type</option>
                           <option value="AADHAAR">Aadhaar</option>
                           <option value="PAN">PAN</option>
                           <option value="PASSPORT">Passport</option>
+                          <option value="VOTER_ID">Voter ID</option>
+                          <option value="DRIVING_LICENSE">Driving License</option>
                       </select>
                       <input 
                         type="text" 
                         value={tempTraveler.idNumber || ''}
-                        onChange={e => setTempTraveler({...tempTraveler, idNumber: e.target.value})}
+                        onChange={e => {
+                          const val = e.target.value;
+                          setTempTraveler({...tempTraveler, idNumber: val});
+                          if (tempTraveler.idType) {
+                            const v = validateIdNumber(tempTraveler.idType as IdDocType, val);
+                            setTravelerValidationError(v.isValid ? null : v.error || 'Invalid format');
+                          }
+                        }}
                         placeholder="ID Number"
-                        className={`col-span-2 ${inputClasses}`}
+                        className={`col-span-2 ${inputClasses} ${travelerValidationError ? 'border-red-500' : ''}`}
                       />
                   </div>
+                  {travelerValidationError && <p className="text-[10px] text-red-500 mb-2">{travelerValidationError}</p>}
               </div>
 
               <div className="space-y-2 pt-2">

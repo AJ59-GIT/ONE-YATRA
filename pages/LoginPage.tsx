@@ -4,7 +4,7 @@ import { ArrowRight, Sparkles, Map, Shield, Mail, Smartphone, Lock, User as User
 import { Button } from '../components/Button';
 import { Input } from '../components/Input';
 import { FormErrorSummary } from '../components/FormErrorSummary';
-import { loginWithEmail, registerWithEmail, checkPasswordStrength, validateEmail } from '../services/authService';
+import { loginWithEmail, registerWithEmail, loginWithGoogle, checkPasswordStrength, validateEmail } from '../services/authService';
 import { sendPasswordReset, sendOTP } from '../services/notificationService';
 
 interface LoginPageProps {
@@ -115,6 +115,17 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
     }, 1500);
   };
 
+  const handleGoogleLogin = async () => {
+    setIsLoading(true);
+    const result = await loginWithGoogle();
+    setIsLoading(false);
+    if (result.success) {
+      onLoginSuccess();
+    } else {
+      setFormErrors({ general: result.message || 'Google login failed' });
+    }
+  };
+
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormErrors({});
@@ -136,6 +147,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormErrors({});
+    setSuccessMsg('');
     let hasError = false;
 
     if (!fullName) { setFormErrors(prev => ({...prev, fullName: "Name is required"})); hasError = true; }
@@ -157,7 +169,8 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
     setIsLoading(false);
 
     if (result.success) {
-      onLoginSuccess();
+      setSuccessMsg(result.message || "Registration successful! Please check your email for verification.");
+      setStep('EMAIL_LOGIN');
     } else {
       setFormErrors({ general: result.message || 'Registration failed' });
     }
@@ -199,14 +212,14 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
       <div className="space-y-4">
         <div className="flex flex-col sm:flex-row gap-3">
           <button 
-            onClick={() => alert("Google OAuth Mock")}
+            onClick={handleGoogleLogin}
             className="flex-1 flex items-center justify-center px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg shadow-sm bg-white dark:bg-slate-800 text-gray-700 dark:text-white font-medium hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors"
           >
             <GoogleIcon />
             <span className="ml-2">Google</span>
           </button>
           <button 
-            onClick={() => alert("Apple Auth Mock")}
+            onClick={() => alert("Apple Auth is coming soon!")}
             className="flex-1 flex items-center justify-center px-4 py-3 border border-transparent rounded-lg shadow-sm bg-black text-white font-medium hover:bg-gray-900 transition-colors"
           >
             <AppleIcon />
@@ -219,12 +232,6 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
           <span className="flex-shrink-0 mx-4 text-gray-400 text-xs uppercase font-semibold">or continue with</span>
           <div className="flex-grow border-t border-gray-200 dark:border-slate-700"></div>
         </div>
-
-        <Button size="lg" className="w-full text-lg group" onClick={() => setStep('PHONE')}>
-          <Smartphone className="mr-2 h-5 w-5" />
-          Continue with Phone
-          <ArrowRight className="ml-auto h-5 w-5 opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
-        </Button>
         
         <Button size="lg" variant="outline" className="w-full text-lg group bg-white dark:bg-transparent" onClick={() => setStep('EMAIL_LOGIN')}>
           <Mail className="mr-2 h-5 w-5" />
@@ -303,6 +310,12 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
       <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Welcome Back</h2>
       <p className="text-gray-500 dark:text-gray-400 mb-8 text-sm">Enter your credentials to continue.</p>
       
+      {successMsg && (
+        <div className="mb-6 p-4 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 rounded-lg text-sm border-l-4 border-green-500">
+          {successMsg}
+        </div>
+      )}
+
       <FormErrorSummary errors={formErrors} title="Login Failed" />
 
       <form onSubmit={handleEmailLogin} className="space-y-1">

@@ -1,11 +1,39 @@
 
 import { UserProfile } from "../types";
+import { 
+  createUserWithEmailAndPassword, 
+  signInWithEmailAndPassword, 
+  signOut, 
+  sendEmailVerification, 
+  signInWithPopup,
+  updateProfile,
+  onAuthStateChanged,
+  User
+} from "firebase/auth";
+import { auth, googleProvider } from "./firebase";
 
-const USERS_STORAGE_KEY = 'oneyatra_users_db';
 const CURRENT_USER_KEY = 'oneyatra_current_user';
+const USERS_STORAGE_KEY = 'oneyatra_users_db';
 
 // Mock delay to simulate network request
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+// Initialize sync from Firebase to LocalStorage
+onAuthStateChanged(auth, (user) => {
+  if (user) {
+    if (user.emailVerified || user.providerData[0]?.providerId === 'google.com') {
+      const profile: UserProfile = {
+        email: user.email || '',
+        name: user.displayName || 'User',
+        avatar: user.photoURL || undefined,
+        preferences: {}
+      };
+      localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(profile));
+    }
+  } else {
+    localStorage.removeItem(CURRENT_USER_KEY);
+  }
+});
 
 export const validateEmail = (email: string): boolean => {
   const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -35,58 +63,66 @@ export const checkPasswordStrength = (password: string): { score: number; messag
 };
 
 export const registerWithEmail = async (email: string, password: string, name: string): Promise<{ success: boolean; message?: string }> => {
-  await delay(800);
-  
-  if (!validateEmail(email)) {
-    return { success: false, message: "Invalid email format" };
+  try {
+    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    const user = userCredential.user;
+    
+    // Update display name
+    await updateProfile(user, { displayName: name });
+    
+    // Send verification email
+    await sendEmailVerification(user);
+    
+    return { success: true, message: "Verification email sent. Please check your inbox." };
+  } catch (error: any) {
+    let message = "Registration failed.";
+    if (error.code === 'auth/email-already-in-use') message = "Email already in use.";
+    if (error.code === 'auth/weak-password') message = "Password is too weak.";
+    return { success: false, message };
   }
-
-  const usersRaw = localStorage.getItem(USERS_STORAGE_KEY);
-  const users = usersRaw ? JSON.parse(usersRaw) : [];
-
-  const exists = users.find((u: any) => u.email === email);
-  if (exists) {
-    return { success: false, message: "User already exists with this email." };
-  }
-
-  // Save new user
-  const newUser = { email, password, name, preferences: {} }; // In real app, hash password!
-  users.push(newUser);
-  localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(users));
-  
-  // Set as current user
-  localStorage.setItem(CURRENT_USER_KEY, JSON.stringify({ email, name, preferences: {} }));
-  
-  return { success: true };
 };
 
 export const loginWithEmail = async (email: string, password: string): Promise<{ success: boolean; message?: string }> => {
-  await delay(800);
+  try {
+    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    const user = userCredential.user;
 
-  const usersRaw = localStorage.getItem(USERS_STORAGE_KEY);
-  const users = usersRaw ? JSON.parse(usersRaw) : [];
+    if (!user.emailVerified) {
+      return { success: false, message: "Please verify your email before logging in. Check your inbox." };
+    }
 
-  const user = users.find((u: any) => u.email === email && u.password === password);
-  
-  if (user) {
-    // Construct profile object excluding sensitive data like password
     const profile: UserProfile = {
-      email: user.email,
-      name: user.name,
-      phone: user.phone,
-      dob: user.dob,
-      gender: user.gender,
-      avatar: user.avatar,
-      addresses: user.addresses,
-      emergencyContact: user.emergencyContact,
-      twoFactorEnabled: user.twoFactorEnabled,
-      preferences: user.preferences
+      email: user.email || '',
+      name: user.displayName || 'User',
+      preferences: {}
     };
     
     localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(profile));
     return { success: true };
-  } else {
-    return { success: false, message: "Invalid email or password." };
+  } catch (error: any) {
+    let message = "Invalid email or password.";
+    if (error.code === 'auth/user-not-found') message = "User not found.";
+    if (error.code === 'auth/wrong-password') message = "Invalid password.";
+    return { success: false, message };
+  }
+};
+
+export const loginWithGoogle = async (): Promise<{ success: boolean; message?: string }> => {
+  try {
+    const result = await signInWithPopup(auth, googleProvider);
+    const user = result.user;
+
+    const profile: UserProfile = {
+      email: user.email || '',
+      name: user.displayName || 'User',
+      avatar: user.photoURL || undefined,
+      preferences: {}
+    };
+    
+    localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(profile));
+    return { success: true };
+  } catch (error: any) {
+    return { success: false, message: "Google login failed." };
   }
 };
 
@@ -150,7 +186,8 @@ export const deleteAccount = async (): Promise<boolean> => {
   return true;
 };
 
-export const logoutUser = () => {
+export const logoutUser = async () => {
+  await signOut(auth);
   localStorage.removeItem(CURRENT_USER_KEY);
   localStorage.removeItem('oneyatra_user');
 };
