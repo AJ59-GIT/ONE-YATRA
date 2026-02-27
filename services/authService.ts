@@ -20,16 +20,14 @@ const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 // Initialize sync from Firebase to LocalStorage
 onAuthStateChanged(auth, (user) => {
-  if (user) {
-    if (user.emailVerified || user.providerData[0]?.providerId === 'google.com') {
-      const profile: UserProfile = {
-        email: user.email || '',
-        name: user.displayName || 'User',
-        avatar: user.photoURL || undefined,
-        preferences: {}
-      };
-      localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(profile));
-    }
+  if (user && (user.emailVerified || user.providerData[0]?.providerId === 'google.com')) {
+    const profile: UserProfile = {
+      email: user.email || '',
+      name: user.displayName || 'User',
+      avatar: user.photoURL || undefined,
+      preferences: {}
+    };
+    localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(profile));
   } else {
     localStorage.removeItem(CURRENT_USER_KEY);
   }
@@ -75,9 +73,14 @@ export const registerWithEmail = async (email: string, password: string, name: s
     
     return { success: true, message: "Verification email sent. Please check your inbox." };
   } catch (error: any) {
+    console.error("Firebase Registration Error:", error);
     let message = "Registration failed.";
     if (error.code === 'auth/email-already-in-use') message = "Email already in use.";
-    if (error.code === 'auth/weak-password') message = "Password is too weak.";
+    else if (error.code === 'auth/weak-password') message = "Password is too weak.";
+    else if (error.code === 'auth/operation-not-allowed') message = "Email/Password sign-in is not enabled in Firebase Console.";
+    else if (error.code === 'auth/invalid-email') message = "Invalid email address.";
+    else if (error.message) message = `Registration failed: ${error.message}`;
+    
     return { success: false, message };
   }
 };
@@ -87,23 +90,46 @@ export const loginWithEmail = async (email: string, password: string): Promise<{
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
     const user = userCredential.user;
 
-    if (!user.emailVerified) {
+    // Force reload user to get latest emailVerified status
+    await user.reload();
+    const updatedUser = auth.currentUser;
+
+    if (updatedUser && !updatedUser.emailVerified) {
       return { success: false, message: "Please verify your email before logging in. Check your inbox." };
     }
 
     const profile: UserProfile = {
-      email: user.email || '',
-      name: user.displayName || 'User',
+      email: updatedUser?.email || user.email || '',
+      name: updatedUser?.displayName || user.displayName || 'User',
       preferences: {}
     };
     
     localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(profile));
     return { success: true };
   } catch (error: any) {
+    console.error("Firebase Login Error:", error);
     let message = "Invalid email or password.";
-    if (error.code === 'auth/user-not-found') message = "User not found.";
-    if (error.code === 'auth/wrong-password') message = "Invalid password.";
+    if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential') message = "Invalid email or password.";
+    else if (error.code === 'auth/wrong-password') message = "Invalid password.";
+    else if (error.code === 'auth/too-many-requests') message = "Too many failed attempts. Please try again later.";
+    else if (error.code === 'auth/operation-not-allowed') message = "Email/Password sign-in is not enabled in Firebase Console.";
+    else if (error.message) message = `Login failed: ${error.message}`;
+    
     return { success: false, message };
+  }
+};
+
+export const resendVerificationEmail = async (email: string, password: string): Promise<{ success: boolean; message?: string }> => {
+  try {
+    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    const user = userCredential.user;
+    if (user.emailVerified) {
+      return { success: false, message: "Email is already verified." };
+    }
+    await sendEmailVerification(user);
+    return { success: true, message: "Verification email resent. Please check your inbox." };
+  } catch (error: any) {
+    return { success: false, message: "Failed to resend verification email." };
   }
 };
 

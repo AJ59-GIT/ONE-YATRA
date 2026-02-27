@@ -4,7 +4,7 @@ import { ArrowRight, Sparkles, Map, Shield, Mail, Smartphone, Lock, User as User
 import { Button } from '../components/Button';
 import { Input } from '../components/Input';
 import { FormErrorSummary } from '../components/FormErrorSummary';
-import { loginWithEmail, registerWithEmail, loginWithGoogle, checkPasswordStrength, validateEmail } from '../services/authService';
+import { loginWithEmail, registerWithEmail, loginWithGoogle, resendVerificationEmail, checkPasswordStrength, validateEmail } from '../services/authService';
 import { sendPasswordReset, sendOTP } from '../services/notificationService';
 
 interface LoginPageProps {
@@ -141,6 +141,25 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
       onLoginSuccess();
     } else {
       setFormErrors({ general: result.message || 'Login failed' });
+      // If it's a verification error, we could show a specific button to resend
+      if (result.message?.includes("verify your email")) {
+        setStep('EMAIL_LOGIN'); // Stay here
+      }
+    }
+  };
+
+  const handleResendVerification = async () => {
+    if (!email || !password) {
+      setFormErrors({ general: "Please enter your email and password to resend verification." });
+      return;
+    }
+    setIsLoading(true);
+    const result = await resendVerificationEmail(email, password);
+    setIsLoading(false);
+    if (result.success) {
+      setSuccessMsg(result.message || "Verification email resent!");
+    } else {
+      setFormErrors({ general: result.message || "Failed to resend verification email." });
     }
   };
 
@@ -344,6 +363,17 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
         <Button type="submit" className="w-full" size="lg" isLoading={isLoading}>
            Log In
         </Button>
+        {formErrors.general?.includes("verify your email") && (
+          <div className="mt-4 text-center">
+            <button 
+              type="button" 
+              onClick={handleResendVerification}
+              className="text-sm text-brand-600 font-bold hover:text-brand-700 underline"
+            >
+              Resend Verification Email
+            </button>
+          </div>
+        )}
       </form>
 
       <div className="mt-6 text-center text-sm">
