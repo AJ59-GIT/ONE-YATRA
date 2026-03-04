@@ -134,14 +134,26 @@ export const Header: React.FC<HeaderProps> = ({ onNavigate, onLogout }) => {
             </div>
             
             {/* User Dropdown Trigger */}
-            <button 
-              onClick={() => onNavigate?.('PROFILE')}
-              className="flex items-center gap-2 p-1 pl-2 pr-1 rounded-full hover:bg-white/10 transition-colors cursor-pointer border border-transparent hover:border-gray-200 group rtl:pl-1 rtl:pr-2"
-            >
-              <div className={`p-1.5 rounded-full ${isB2BMode ? 'bg-blue-800 text-blue-200' : 'bg-gray-200 text-gray-500 dark:bg-slate-700 dark:text-gray-400'}`}>
-                <User className="h-4 w-4" aria-hidden="true" />
-              </div>
-            </button>
+            <div className="flex items-center gap-2">
+              <button 
+                onClick={() => onNavigate?.('PROFILE')}
+                className="flex items-center gap-2 p-1 pl-2 pr-1 rounded-full hover:bg-white/10 transition-colors cursor-pointer border border-transparent hover:border-gray-200 group rtl:pl-1 rtl:pr-2"
+                title="Profile Settings"
+              >
+                <div className={`p-1.5 rounded-full ${isB2BMode ? 'bg-blue-800 text-blue-200' : 'bg-gray-200 text-gray-500 dark:bg-slate-700 dark:text-gray-400'}`}>
+                  <User className="h-4 w-4" aria-hidden="true" />
+                </div>
+              </button>
+
+              <button 
+                onClick={onLogout}
+                className="hidden md:flex items-center gap-2 p-2 rounded-full text-gray-500 hover:text-red-600 hover:bg-red-50 dark:text-gray-400 dark:hover:bg-red-900/20 transition-colors focus:outline-none focus:ring-2 focus:ring-red-500"
+                title="Logout"
+                aria-label="Logout"
+              >
+                <LogOut className="h-5 w-5" />
+              </button>
+            </div>
 
             {/* Mobile Menu */}
             <div className="md:hidden">

@@ -230,8 +230,14 @@ export const DocumentsVaultPage: React.FC<DocumentsVaultPageProps> = ({ onBack }
                                 onChange={e => {
                                   const val = e.target.value;
                                   setScannedData({...scannedData, number: val});
-                                  const v = validateIdNumber(scannedData.type as IdDocType || 'OTHER', val);
-                                  setValidationError(v.isValid ? null : v.error || 'Invalid format');
+                                  if (validationError) setValidationError(null);
+                                }}
+                                onBlur={e => {
+                                  const val = e.target.value;
+                                  if (val) {
+                                    const v = validateIdNumber(scannedData.type as IdDocType || 'OTHER', val);
+                                    setValidationError(v.isValid ? null : v.error || 'Invalid format');
+                                  }
                                 }}
                                 className={`w-full p-2 border rounded-lg text-sm ${validationError ? 'border-red-500' : ''}`}
                               />

@@ -33,11 +33,11 @@ export const RealTimeBookingToast: React.FC = () => {
   if (!notification) return null;
 
   return (
-    <div className="fixed bottom-20 left-4 z-40 bg-white/90 backdrop-blur-md border border-gray-200 shadow-lg rounded-full px-4 py-2 flex items-center gap-3 animate-in slide-in-from-left fade-in duration-500 max-w-[90vw]">
-        <div className="bg-brand-100 p-1.5 rounded-full">
-            <User className="h-3 w-3 text-brand-600" />
+    <div className="fixed bottom-20 left-4 z-40 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border border-gray-200 dark:border-slate-800 shadow-lg rounded-full px-4 py-2 flex items-center gap-3 animate-in slide-in-from-left fade-in duration-500 max-w-[90vw]">
+        <div className="bg-brand-100 dark:bg-brand-900/30 p-1.5 rounded-full">
+            <User className="h-3 w-3 text-brand-600 dark:text-brand-400" />
         </div>
-        <div className="text-xs text-gray-700">
+        <div className="text-xs text-gray-700 dark:text-slate-300">
             <span className="font-bold">{notification.name}</span> just booked a trip to <span className="font-bold">{notification.to}</span>
         </div>
     </div>

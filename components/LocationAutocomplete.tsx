@@ -103,9 +103,9 @@ export const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
   };
 
   const getIconBg = (item: LocationSuggestion) => {
-      if (item.type === 'AIRPORT') return 'bg-blue-50 text-blue-600';
-      if (item.type === 'SAVED') return 'bg-brand-50 text-brand-600';
-      return 'bg-gray-100 text-gray-500';
+      if (item.type === 'AIRPORT') return 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400';
+      if (item.type === 'SAVED') return 'bg-brand-50 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400';
+      return 'bg-gray-100 dark:bg-slate-800 text-gray-500 dark:text-slate-400';
   };
 
   const activeDescendantId = highlightedIndex >= 0 ? `suggestion-${highlightedIndex}` : undefined;
@@ -138,7 +138,7 @@ export const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
            <ul 
              id="location-listbox"
              role="listbox"
-             className="absolute z-50 left-0 right-0 top-[calc(100%+8px)] bg-white border border-gray-100 rounded-xl shadow-xl max-h-64 overflow-y-auto divide-y divide-gray-50 animate-in fade-in slide-in-from-top-2 duration-200"
+             className="absolute z-50 left-0 right-0 top-[calc(100%+8px)] bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-800 rounded-xl shadow-2xl dark:shadow-black/50 max-h-64 overflow-y-auto divide-y divide-gray-50 dark:divide-slate-800 animate-in fade-in slide-in-from-top-2 duration-200"
            >
               {suggestions.map((item, index) => (
                 <li 
@@ -147,18 +147,18 @@ export const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
                   role="option"
                   aria-selected={index === highlightedIndex}
                   onClick={() => selectSuggestion(item)}
-                  className={`flex items-center px-4 py-3 cursor-pointer transition-colors ${index === highlightedIndex ? 'bg-brand-50' : 'hover:bg-gray-50'}`}
+                  className={`flex items-center px-4 py-3 cursor-pointer transition-colors ${index === highlightedIndex ? 'bg-brand-50 dark:bg-brand-900/20' : 'hover:bg-gray-50 dark:hover:bg-slate-800/50'}`}
                 >
                    <div className={`p-2 rounded-full mr-3 shrink-0 ${getIconBg(item)}`}>
                       {getIcon(item)}
                    </div>
                    <div className="flex-grow min-w-0">
-                      <div className="font-medium text-gray-900 text-sm truncate flex items-center gap-2">
+                      <div className="font-medium text-gray-900 dark:text-white text-sm truncate flex items-center gap-2">
                         <HighlightText text={item.city} highlight={value} />
-                        {item.code && <span className="text-[10px] font-bold text-gray-500 border border-gray-200 px-1.5 py-0.5 rounded bg-gray-50 tracking-wider">{item.code}</span>}
-                        {item.type === 'SAVED' && <span className="text-[9px] bg-brand-100 text-brand-700 px-1.5 rounded uppercase font-bold">Saved</span>}
+                        {item.code && <span className="text-[10px] font-bold text-gray-500 dark:text-slate-400 border border-gray-200 dark:border-slate-700 px-1.5 py-0.5 rounded bg-gray-50 dark:bg-slate-800 tracking-wider">{item.code}</span>}
+                        {item.type === 'SAVED' && <span className="text-[9px] bg-brand-100 dark:bg-brand-900/40 text-brand-700 dark:text-brand-300 px-1.5 rounded uppercase font-bold">Saved</span>}
                       </div>
-                      <div className="text-xs text-gray-500 truncate">
+                      <div className="text-xs text-gray-500 dark:text-slate-400 truncate">
                         {item.state}{item.country !== 'India' ? `, ${item.country}` : ''}
                       </div>
                    </div>

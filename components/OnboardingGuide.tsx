@@ -63,26 +63,26 @@ export const OnboardingGuide: React.FC<{ onComplete: () => void }> = ({ onComple
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
-      <div className="bg-white rounded-2xl w-full max-w-sm p-8 shadow-2xl relative overflow-hidden">
+      <div className="bg-white dark:bg-slate-800 rounded-2xl w-full max-w-sm p-8 shadow-2xl relative overflow-hidden">
         
         {/* Progress Bar */}
-        <div className="absolute top-0 left-0 h-1 bg-gray-100 w-full">
+        <div className="absolute top-0 left-0 h-1 bg-gray-100 dark:bg-slate-700 w-full">
             <div 
                 className="h-full bg-brand-500 transition-all duration-300" 
                 style={{ width: `${((step + 1) / STEPS.length) * 100}%` }}
             ></div>
         </div>
 
-        <button onClick={handleClose} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
+        <button onClick={handleClose} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
             <X className="h-5 w-5" />
         </button>
 
         <div className="flex flex-col items-center text-center mt-4 animate-in slide-in-from-right duration-300" key={step}>
-            <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mb-6 shadow-sm border border-gray-100">
+            <div className="w-20 h-20 bg-gray-50 dark:bg-slate-900 rounded-full flex items-center justify-center mb-6 shadow-sm border border-gray-100 dark:border-slate-700">
                 {STEPS[step].icon}
             </div>
-            <h2 className="text-xl font-bold text-gray-900 mb-2">{STEPS[step].title}</h2>
-            <p className="text-gray-500 text-sm leading-relaxed mb-8 h-12">
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">{STEPS[step].title}</h2>
+            <p className="text-gray-500 dark:text-gray-400 text-sm leading-relaxed mb-8 h-12">
                 {STEPS[step].desc}
             </p>
         </div>
@@ -90,7 +90,7 @@ export const OnboardingGuide: React.FC<{ onComplete: () => void }> = ({ onComple
         <div className="flex gap-3">
             <button 
                 onClick={handleClose}
-                className="flex-1 py-3 text-sm font-bold text-gray-500 hover:bg-gray-50 rounded-xl transition-colors"
+                className="flex-1 py-3 text-sm font-bold text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-slate-700 rounded-xl transition-colors"
             >
                 Skip
             </button>
@@ -101,7 +101,7 @@ export const OnboardingGuide: React.FC<{ onComplete: () => void }> = ({ onComple
 
         <div className="flex justify-center gap-1.5 mt-6">
             {STEPS.map((_, i) => (
-                <div key={i} className={`w-2 h-2 rounded-full transition-colors ${i === step ? 'bg-brand-600' : 'bg-gray-200'}`}></div>
+                <div key={i} className={`w-2 h-2 rounded-full transition-colors ${i === step ? 'bg-brand-600' : 'bg-gray-200 dark:bg-slate-700'}`}></div>
             ))}
         </div>
       </div>

@@ -130,7 +130,7 @@ const App: React.FC = () => {
   return (
     <SettingsProvider>
         <div 
-        className="min-h-screen bg-slate-50 dark:bg-slate-950 font-sans text-slate-900 dark:text-slate-100 flex flex-col transition-colors duration-300"
+        className="min-h-screen bg-white dark:bg-slate-950 font-sans text-gray-900 dark:text-slate-100 flex flex-col transition-colors duration-300"
         >
         <OfflineBanner />
         <SMSNotification />

@@ -98,6 +98,7 @@ export const BookingPage: React.FC<BookingPageProps> = ({ option, origin, destin
   const [appliedGiftCard, setAppliedGiftCard] = useState<{code: string, amount: number} | null>(null);
   const [giftCardStatus, setGiftCardStatus] = useState<'IDLE' | 'VALIDATING' | 'SUCCESS' | 'ERROR'>('IDLE');
   const [giftCardMessage, setGiftCardMessage] = useState('');
+  const [paymentError, setPaymentError] = useState<string | null>(null);
 
   // Payment State
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(isB2BMode ? 'CORPORATE_BILL' : 'UPI');
@@ -454,19 +455,20 @@ export const BookingPage: React.FC<BookingPageProps> = ({ option, origin, destin
 
     if (finalAmount > 0) {
         if (paymentMethod === 'UPI' && upiMode === 'ID' && !upiId.includes('@')) {
-            alert('Please enter a valid UPI ID'); return;
+            setPaymentError('Please enter a valid UPI ID'); return;
         }
         if (paymentMethod === 'CARD' && selectedCardId === 'NEW' && (!newCard.number || !newCard.expiry || !newCard.cvv)) {
-            alert("Please enter full card details"); return;
+            setPaymentError("Please enter full card details"); return;
         }
         if (paymentMethod === 'CARD' && selectedCardId !== 'NEW' && (!savedCardCvv || savedCardCvv.length < 3)) {
-            alert("Please enter CVV"); return;
+            setPaymentError("Please enter CVV"); return;
         }
         if (paymentMethod === 'WALLET' && selectedWallet === 'ONEYATRA' && walletBalance < finalAmount) {
-            alert(`Insufficient Balance. Need ₹${finalAmount - walletBalance} more.`); return;
+            setPaymentError(`Insufficient Balance. Need ₹${finalAmount - walletBalance} more.`); return;
         }
     }
 
+    setPaymentError(null);
     booking.totalAmount = finalAmount + giftCardAmount;
     if (appliedDiscount) booking.discount = appliedDiscount;
     if (appliedGiftCard) booking.giftCardRedemption = appliedGiftCard;
@@ -478,7 +480,7 @@ export const BookingPage: React.FC<BookingPageProps> = ({ option, origin, destin
     let paymentSuccess = true;
     if (appliedGiftCard) {
         const gcSuccess = await redeemGiftCard(appliedGiftCard.code, appliedGiftCard.amount);
-        if (!gcSuccess) { alert("Gift Card Error"); setStep('PAYMENT'); return; }
+        if (!gcSuccess) { setPaymentError("Gift Card Error"); setStep('PAYMENT'); return; }
     }
     
     if (finalAmount > 0) {
@@ -704,16 +706,13 @@ export const BookingPage: React.FC<BookingPageProps> = ({ option, origin, destin
                                  onChange={(e) => {
                                    const val = e.target.value;
                                    updatePassenger(index, 'idNumber', val);
-                                   if (passenger.idType) {
+                                 }}
+                                 onBlur={(e) => {
+                                   const val = e.target.value;
+                                   if (passenger.idType && val) {
                                      const v = validateIdNumber(passenger.idType as IdDocType, val);
                                      if (!v.isValid) {
                                        setErrors(prev => ({ ...prev, [`idNumber_${index}`]: v.error || 'Invalid format' }));
-                                     } else {
-                                       setErrors(prev => {
-                                         const next = { ...prev };
-                                         delete next[`idNumber_${index}`];
-                                         return next;
-                                       });
                                      }
                                    }
                                  }}
@@ -899,14 +898,147 @@ export const BookingPage: React.FC<BookingPageProps> = ({ option, origin, destin
                         {paymentMethod === 'CARD' && (
                             <div className="animate-in fade-in space-y-4">
                                 <h3 className="font-bold text-gray-900 dark:text-white mb-4 flex items-center"><CreditCard className="h-5 w-5 mr-2 text-brand-600" /> Pay with Card</h3>
-                                {/* Assuming similar updates applied internally to components or inline styles */}
-                                {selectedCardId === 'NEW' ? (<div className="animate-in fade-in space-y-2"><Input label="Card Number" type="text" value={newCard.number} onChange={(e) => setNewCard({...newCard, number: e.target.value.replace(/\D/g,'').slice(0, 16)})} placeholder="0000 0000 0000 0000" /><div className="grid grid-cols-2 gap-4"><Input label="Expiry Date" type="text" value={newCard.expiry} onChange={(e) => setNewCard({...newCard, expiry: e.target.value})} placeholder="MM / YY" /><Input label="CVV" type="password" value={newCard.cvv} onChange={(e) => setNewCard({...newCard, cvv: e.target.value.slice(0, 4)})} placeholder="123" maxLength={3} /></div><Input label="Card Holder Name" type="text" value={newCard.name} onChange={(e) => setNewCard({...newCard, name: e.target.value})} placeholder="Name on card" /></div>) : null}
+                                
+                                {savedCards.length > 0 && (
+                                    <div className="space-y-2 mb-4">
+                                        <p className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Saved Cards</p>
+                                        {savedCards.map(card => (
+                                            <div key={card.id} onClick={() => setSelectedCardId(card.id)} className={`p-3 rounded-lg border transition-all cursor-pointer flex items-center justify-between ${selectedCardId === card.id ? 'bg-brand-50 dark:bg-brand-900/20 border-brand-500' : 'bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700'}`}>
+                                                <div className="flex items-center gap-3">
+                                                    <div className="p-2 bg-gray-100 dark:bg-slate-700 rounded text-xs font-bold">{card.brand}</div>
+                                                    <div>
+                                                        <p className="text-sm font-bold text-gray-900 dark:text-white">•••• {card.last4}</p>
+                                                        <p className="text-[10px] text-gray-500 dark:text-gray-400">{card.expiry}</p>
+                                                    </div>
+                                                </div>
+                                                {selectedCardId === card.id && (
+                                                    <div className="w-20">
+                                                        <input type="password" value={savedCardCvv} onChange={e => setSavedCardCvv(e.target.value.slice(0, 4))} placeholder="CVV" className="w-full p-1.5 text-xs border border-gray-300 dark:border-slate-600 rounded bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:ring-1 focus:ring-brand-500 outline-none" maxLength={4} onClick={e => e.stopPropagation()} />
+                                                    </div>
+                                                )}
+                                            </div>
+                                        ))}
+                                        <button onClick={() => setSelectedCardId('NEW')} className={`w-full p-3 rounded-lg border border-dashed text-sm font-medium transition-all ${selectedCardId === 'NEW' ? 'bg-brand-50 dark:bg-brand-900/20 border-brand-500 text-brand-700' : 'border-gray-300 dark:border-slate-700 text-gray-500 hover:bg-gray-50 dark:hover:bg-slate-700'}`}>
+                                            + Use Another Card
+                                        </button>
+                                    </div>
+                                )}
+
+                                {selectedCardId === 'NEW' && (
+                                    <div className="animate-in fade-in space-y-3">
+                                        <Input label="Card Number" type="text" value={newCard.number} onChange={(e) => setNewCard({...newCard, number: e.target.value.replace(/\D/g,'').slice(0, 16)})} placeholder="0000 0000 0000 0000" />
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <Input label="Expiry Date" type="text" value={newCard.expiry} onChange={(e) => setNewCard({...newCard, expiry: e.target.value})} placeholder="MM / YY" />
+                                            <Input label="CVV" type="password" value={newCard.cvv} onChange={(e) => setNewCard({...newCard, cvv: e.target.value.slice(0, 4)})} placeholder="123" maxLength={3} />
+                                        </div>
+                                        <Input label="Card Holder Name" type="text" value={newCard.name} onChange={(e) => setNewCard({...newCard, name: e.target.value})} placeholder="Name on card" />
+                                        <label className="flex items-center gap-2 cursor-pointer">
+                                            <input type="checkbox" checked={saveCardForFuture} onChange={e => setSaveCardForFuture(e.target.checked)} className="rounded border-gray-300 text-brand-600 focus:ring-brand-500" />
+                                            <span className="text-xs text-gray-600 dark:text-gray-400">Save this card for faster payments</span>
+                                        </label>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {paymentMethod === 'WALLET' && (
+                            <div className="animate-in fade-in space-y-4">
+                                <h3 className="font-bold text-gray-900 dark:text-white mb-4 flex items-center"><Wallet className="h-5 w-5 mr-2 text-brand-600" /> Wallets</h3>
+                                <div className="space-y-3">
+                                    <div className={`p-4 rounded-xl border transition-all cursor-pointer ${selectedWallet === 'ONEYATRA' ? 'bg-brand-50 dark:bg-brand-900/20 border-brand-500' : 'bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700'}`} onClick={() => setSelectedWallet('ONEYATRA')}>
+                                        <div className="flex justify-between items-center mb-1">
+                                            <span className="text-sm font-bold text-gray-900 dark:text-white">OneYatra Wallet</span>
+                                            <span className="text-xs font-bold text-brand-600">₹{walletBalance.toLocaleString()}</span>
+                                        </div>
+                                        <p className="text-xs text-gray-500 dark:text-gray-400">Fastest checkout with one-click payment.</p>
+                                        {walletBalance < finalTotal && (
+                                            <p className="text-[10px] text-red-500 mt-2 font-bold">Insufficient balance. Please add money or use another method.</p>
+                                        )}
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-3">
+                                        {WALLETS.map(w => (
+                                            <button key={w.id} onClick={() => setSelectedWallet(w.id)} className={`p-3 rounded-lg border text-left transition-all ${selectedWallet === w.id ? 'bg-brand-50 dark:bg-brand-900/20 border-brand-500' : 'bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700'}`}>
+                                                <div className="flex items-center gap-2">
+                                                    <div className="w-6 h-6 rounded bg-gray-100 dark:bg-slate-700 flex items-center justify-center text-[10px] font-bold">{w.icon}</div>
+                                                    <span className="text-xs font-bold text-gray-900 dark:text-white">{w.name}</span>
+                                                </div>
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {paymentMethod === 'NETBANKING' && (
+                            <div className="animate-in fade-in space-y-4">
+                                <h3 className="font-bold text-gray-900 dark:text-white mb-4 flex items-center"><Landmark className="h-5 w-5 mr-2 text-brand-600" /> Net Banking</h3>
+                                <div className="grid grid-cols-2 gap-3 mb-4">
+                                    {POPULAR_BANKS.map(b => (
+                                        <button key={b.id} onClick={() => setSelectedBank(b.id)} className={`p-3 rounded-lg border text-left transition-all ${selectedBank === b.id ? 'bg-brand-50 dark:bg-brand-900/20 border-brand-500' : 'bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700'}`}>
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-lg">{b.logo}</span>
+                                                <span className="text-xs font-bold text-gray-900 dark:text-white">{b.name}</span>
+                                            </div>
+                                        </button>
+                                    ))}
+                                </div>
+                                <div className="relative">
+                                    <select className="w-full p-3 border border-gray-300 dark:border-slate-600 rounded-lg text-sm bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none appearance-none">
+                                        <option>Select Other Bank</option>
+                                        <option>State Bank of India</option>
+                                        <option>HDFC Bank</option>
+                                        <option>ICICI Bank</option>
+                                        <option>Axis Bank</option>
+                                        <option>Kotak Mahindra Bank</option>
+                                        <option>IndusInd Bank</option>
+                                        <option>Yes Bank</option>
+                                    </select>
+                                    <ChevronDown className="absolute right-3 top-3.5 h-4 w-4 text-gray-400 pointer-events-none" />
+                                </div>
+                                <p className="text-[10px] text-gray-500 dark:text-gray-400 mt-2">Note: A processing fee of ₹20 applies for Net Banking.</p>
+                            </div>
+                        )}
+
+                        {paymentMethod === 'PAYLATER' && (
+                            <div className="animate-in fade-in space-y-4">
+                                <h3 className="font-bold text-gray-900 dark:text-white mb-4 flex items-center"><Clock className="h-5 w-5 mr-2 text-brand-600" /> Pay Later</h3>
+                                <div className="space-y-3">
+                                    <div className="p-4 rounded-xl border border-brand-200 bg-brand-50 dark:bg-brand-900/20 dark:border-brand-800">
+                                        <div className="flex justify-between items-center mb-2">
+                                            <span className="text-sm font-bold text-brand-700 dark:text-brand-400">LazyPay</span>
+                                            <span className="text-xs font-bold text-green-600">Eligible</span>
+                                        </div>
+                                        <p className="text-xs text-gray-600 dark:text-gray-300">Book now and pay within 15 days. No extra cost.</p>
+                                    </div>
+                                    <div className="p-4 rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 opacity-60">
+                                        <div className="flex justify-between items-center mb-2">
+                                            <span className="text-sm font-bold text-gray-900 dark:text-white">Simpl</span>
+                                            <span className="text-xs font-bold text-gray-400">Not Eligible</span>
+                                        </div>
+                                        <p className="text-xs text-gray-500 dark:text-gray-400">Minimum transaction value ₹2,000 required.</p>
+                                    </div>
+                                </div>
+                                <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg flex items-start gap-2">
+                                    <Info className="h-4 w-4 text-blue-600 mt-0.5" />
+                                    <p className="text-[10px] text-blue-700 dark:text-blue-400">Pay Later options are subject to credit approval by the provider.</p>
+                                </div>
                             </div>
                         )}
                     </>
                 )}
             </div>
          </div>
+
+          {/* Payment Errors */}
+          {paymentError && (
+            <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border-l-4 border-red-500 text-red-700 dark:text-red-400 text-sm animate-in shake duration-300">
+              <div className="flex items-center gap-2 font-bold mb-1">
+                <AlertTriangle className="h-4 w-4" />
+                Payment Error
+              </div>
+              {paymentError}
+            </div>
+          )}
 
          <div className="bg-gradient-to-r from-slate-900 to-slate-800 p-6 rounded-xl text-white shadow-xl mb-6 flex flex-col md:flex-row justify-between items-center gap-6">
             <div className="flex-1">

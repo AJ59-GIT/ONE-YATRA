@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { User, MapPin, Shield, Camera, Save, X, Plus, Trash2, Edit2, AlertTriangle, Lock, LogOut, CheckCircle, Smartphone, Home, Briefcase, Key, Settings, Bell, Heart, Globe, Accessibility, Users, Contact, Star, Locate, Eye, EyeOff, Briefcase as BriefcaseIcon, Gift, Leaf, FileText, Scale } from 'lucide-react';
+import { User, MapPin, Shield, Camera, Save, X, Plus, Trash2, Edit2, AlertTriangle, Lock, LogOut, CheckCircle, Smartphone, Home, Briefcase, Key, Settings, Bell, Heart, Globe, Accessibility, Users, Contact, Star, Locate, Eye, EyeOff, Briefcase as BriefcaseIcon, Gift, Leaf, FileText, Scale, Sparkles } from 'lucide-react';
 import { UserProfile, Address, EmergencyContact, SavedTraveler, AppView } from '../types';
 import { getCurrentUser, updateUserProfile, changePassword, deleteAccount, logoutUser } from '../services/authService';
 import { validateIdNumber, IdDocType } from '../utils/idValidation';
@@ -621,6 +621,29 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onBack, onLogout, onNa
                         </div>
                     </div>
                 </div>
+
+                {/* App Experience */}
+                <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-gray-200 dark:border-slate-700 p-6">
+                    <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-6 flex items-center">
+                        <Sparkles className="h-5 w-5 mr-2 text-purple-600" /> App Experience
+                    </h2>
+                    <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-slate-900/50 rounded-lg border border-gray-100 dark:border-slate-700">
+                        <div>
+                            <p className="text-sm font-bold text-gray-900 dark:text-white">Onboarding Tour</p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400">Re-watch the introduction to OneYatra features.</p>
+                        </div>
+                        <Button 
+                            variant="outline" 
+                            size="sm" 
+                            onClick={() => {
+                                localStorage.removeItem('oneyatra_onboarding_seen');
+                                window.location.reload();
+                            }}
+                        >
+                            Restart Tour
+                        </Button>
+                    </div>
+                </div>
             </div>
           )}
 
@@ -1060,7 +1083,11 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onBack, onLogout, onNa
                         onChange={e => {
                           const val = e.target.value;
                           setTempTraveler({...tempTraveler, idNumber: val});
-                          if (tempTraveler.idType) {
+                          if (travelerValidationError) setTravelerValidationError(null);
+                        }}
+                        onBlur={e => {
+                          const val = e.target.value;
+                          if (tempTraveler.idType && val) {
                             const v = validateIdNumber(tempTraveler.idType as IdDocType, val);
                             setTravelerValidationError(v.isValid ? null : v.error || 'Invalid format');
                           }
